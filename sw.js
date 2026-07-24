@@ -1,7 +1,7 @@
 // UmrahFlow Service Worker
 // Enables complete offline-first operation by caching static assets.
 
-const CACHE_NAME = 'umrahflow-v16';
+const CACHE_NAME = 'umrahflow-v17';
 const ASSETS = [
   './',
   './index.html',
@@ -10,10 +10,10 @@ const ASSETS = [
   './manifest.json',
   './assets/icon.svg',
   './assets/icon-maskable.svg',
-  './assets/ihram_attire.svg',
-  './assets/tawaf_map.svg',
-  './assets/sai_flow.svg',
-  './assets/haircut_rules.svg'
+  './assets/ihram_attire.png',
+  './assets/tawaf_map.png',
+  './assets/sai_flow.png',
+  './assets/haircut_rules.png'
 ];
 
 // Install Event
