@@ -1,7 +1,7 @@
 // UmrahFlow Service Worker
 // Enables complete offline-first operation by caching static assets.
 
-const CACHE_NAME = 'umrahflow-v17';
+const CACHE_NAME = 'umrahflow-v18';
 const ASSETS = [
   './',
   './index.html',
