@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark" data-font-scale="normal">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>UmrahFlow - دليل العمرة 오프라인</title>
+  
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#064e3b" id="metaThemeColor">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+
+  <!-- Service Worker Registration inline for immediate execution -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => {
+            console.log('Offline Engine (Service Worker) registered successfully!', reg.scope);
+            // Optionally, we could show a small toast here saying "App is ready for offline use"
+          })
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</head>
+<body>
+
+  <!-- ============================================== -->
+  <!-- MODALS & OVERLAYS                              -->
+  <!-- ============================================== -->
+  
+  <!-- Mahzoorat Acknowledgment Modal -->
+  <div id="mahzooratModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <h3 class="modal-title" style="color:var(--text-danger);" data-i18n="warnings_title">محظورات الإحرام</h3>
+      <p style="margin-bottom: 15px; font-size: 14px;" data-i18n="warning_ack_desc">يجب التأكد من اجتناب المحظورات التالية قبل متابعة النسك، حيث يترتب على بعضها فدية:</p>
+      
+      <ul class="checklist" style="gap:10px; margin-bottom:20px;">
+        <li class="checklist-item" style="font-size:14px;">⚠️ <span data-i18n="warning1">قص الشعر أو تقليم الأظافر.</span></li>
+        <li class="checklist-item" style="font-size:14px;">⚠️ <span data-i18n="warning2">استخدام العطور أو الصابون المعطر.</span></li>
+        <li class="checklist-item" style="font-size:14px;">⚠️ <span data-i18n="warning3">تغطية الرأس للرجال بملاصق كالعِمامة.</span></li>
+        <li class="checklist-item" style="font-size:14px;">⚠️ <span data-i18n="warning4">عقد النكاح أو الجماع ومقدماته.</span></li>
+        <li class="checklist-item" style="font-size:14px;">⚠️ <span data-i18n="warning5">الجدال والخصام والصيد.</span></li>
+      </ul>
+
+      <div class="checklist-item" style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+        <input type="checkbox" id="cb_ack_warnings" class="checklist-cb" style="width: 28px; height: 28px;">
+        <label for="cb_ack_warnings" style="font-weight:bold; font-size: 16px;" data-i18n="i_acknowledge">أتعهد وأقر بأني ملتزم باجتناب هذه المحظورات.</label>
+      </div>
+
+      <button id="btnConfirmMahzoorat" class="btn-primary" style="width: 100%;" disabled data-i18n="confirm_and_continue">تأكيد ومتابعة</button>
+      <button id="btnCancelMahzoorat" class="btn-secondary" style="width: 100%; margin-top: 10px; border: none; background: transparent;" data-i18n="cancel">إلغاء</button>
+    </div>
+  </div>
+
+  <!-- Automated Reminder Trigger Modal -->
+  <div id="reminderPopupModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content highlight-modal" style="border-color: var(--accent-gold);">
+      <h3 class="modal-title" style="color:var(--accent-gold);">⚠️ <span id="popupReminderTitle">تذكير شخصي</span></h3>
+      <div id="popupReminderContentContainer" style="margin: 20px 0;">
+        <!-- Injected dynamically -->
+      </div>
+      <button id="btnDismissPopup" class="btn-primary" style="width: 100%;" data-i18n="close">إغلاق ومتابعة الطواف</button>
+    </div>
+  </div>
+
+  <!-- Post-Tawaf Sunnah 2 Raka'at & Zamzam Modal -->
+  <div id="postTawafModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content highlight-modal" style="border-color: var(--accent-gold); max-height: 85vh; overflow-y: auto;">
+      <h3 class="modal-title" style="color:var(--accent-gold); font-size: 20px;">🕋 سنة ما بعد الطواف (الركعتان وزمزم)</h3>
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">تم بفضل الله إتمام الطواف! يسن لك الآن القيام بالأعمال التالية قبل الذهاب للسعي:</p>
+      
+      <div class="card" style="margin-bottom:10px; background: rgba(0,0,0,0.3);">
+        <h4 style="color:var(--accent-gold); font-size:15px; margin-bottom:4px;">1️⃣ تغطية الكتف الأيمن (إنهاء الإطباع)</h4>
+        <p class="scalable-text" style="font-size:13px;">تغطية الكتفين بردائك كما كان قبل الطواف.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:10px; background: rgba(0,0,0,0.3);">
+        <h4 style="color:var(--accent-gold); font-size:15px; margin-bottom:4px;">2️⃣ صلاة ركعتين خلف مقام إبراهيم (سنة مؤكدة)</h4>
+        <p class="scalable-text" style="font-size:13px; margin-bottom:6px;">تصلي ركعتين خفيفتين خلف مقام إبراهيم (أو في أي مكان بالحرم):</p>
+        <div style="font-size:13px; background:rgba(251,191,36,0.1); padding:8px; border-radius:6px; line-height:1.6;">
+          • <strong>الركعة الأولى:</strong> الفاتحة + سورة الكافرون («قُلْ يَا أَيُّهَا الْكَافِرُونَ»)<br>
+          • <strong>الركعة الثانية:</strong> الفاتحة + سورة الإخلاص («قُلْ هُوَ اللَّهُ أَحَدٌ»)
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:10px; background: rgba(0,0,0,0.3);">
+        <h4 style="color:var(--accent-gold); font-size:15px; margin-bottom:4px;">3️⃣ الشرب من ماء زمزم والصب على الرأس</h4>
+        <div class="duaa-arabic scalable-dua" style="font-size:16px;">«اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا وَاسِعًا وَشِفَاءً مِنْ كُلِّ دَاءٍ»</div>
+      </div>
+
+      <div class="card" style="margin-bottom:10px; background: rgba(0,0,0,0.3);">
+        <h4 style="color:var(--accent-gold); font-size:15px; margin-bottom:4px;">4️⃣ استلام الحجر الأسود التاسع (إن تيسر)</h4>
+        <p class="scalable-text" style="font-size:13px;">يسن التوجه لخط الحجر الأسود واستلامه باليد أو التكبير من بعيد للمرة التاسعة قبل الذهاب للصفا.</p>
+      </div>
+
+      <button id="btnDismissPostTawaf" class="btn-primary" style="width: 100%; margin-top: 10px;">تمت السنة .. الانتقال إلى السعي ➔</button>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MAIN APPLICATION SHELL                         -->
+  <!-- ============================================== -->
+  <div class="app-container">
+    
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="logo-section">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px; height: 30px;">
+          <defs>
+            <linearGradient id="header-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fbbf24" /><stop offset="100%" stop-color="#b45309" />
+            </linearGradient>
+          </defs>
+          <rect width="512" height="512" rx="128" fill="#047857" />
+          <g transform="translate(128, 120)">
+            <path d="M 40,180 L 128,220 L 216,180 L 216,70 L 128,110 L 40,70 Z" fill="#111827" stroke="url(#header-gold)" stroke-width="8" />
+            <path d="M 40,70 L 128,110 L 128,220 L 40,180 Z" fill="#1f2937" opacity="0.9" />
+            <path d="M 128,110 L 216,70 L 216,180 L 128,220 Z" fill="#111827" />
+            <path d="M 40,95 L 128,135 L 216,95" fill="none" stroke="url(#header-gold)" stroke-width="14" />
+            <path d="M 155,130 L 180,120 L 180,185 L 155,195 Z" fill="url(#header-gold)" />
+          </g>
+        </svg>
+        <h1 class="app-title" data-i18n="title">مُيَسِّر العُمْرَة</h1>
+      </div>
+      
+      <div class="header-controls">
+        <button id="fontToggleBtn" class="icon-btn" aria-label="Toggle Font Size">A<span style="font-size:0.7em">+</span></button>
+        <button id="themeToggleBtn" class="icon-btn" aria-label="Toggle High Contrast Theme">🌓</button>
+        <button id="langToggle" class="icon-btn" style="font-weight: bold;">EN</button>
+      </div>
+    </header>
+
+    <!-- Top Navigation Steps Indicator -->
+    <nav class="steps-nav" aria-label="Umrah Steps">
+      <button class="nav-step-btn active" data-step="1"><span class="step-num">1</span><span data-i18n="step1">الإحرام</span></button>
+      <button class="nav-step-btn" data-step="2"><span class="step-num">2</span><span data-i18n="step2">دخول الحرم</span></button>
+      <button class="nav-step-btn" data-step="3"><span class="step-num">3</span><span data-i18n="step3">الطواف</span></button>
+      <button class="nav-step-btn" data-step="4"><span class="step-num">4</span><span data-i18n="step4">السعي</span></button>
+      <button class="nav-step-btn" data-step="5"><span class="step-num">5</span><span data-i18n="step5">التحلل</span></button>
+    </nav>
+
+    <!-- Main Content Frame -->
+    <main class="app-content" id="appContent">
+
+      <!-- ============================================== -->
+      <!-- STEP 1: PREPARATION & IHRAM                    -->
+      <!-- ============================================== -->
+      <div id="stepContainer1" class="step-container active scrollable-step">
+        <div class="card highlight">
+          <h2 class="card-title"><span style="font-size:24px;">1</span> <span data-i18n="step1_title">التأهب والإحرام</span></h2>
+          <p class="scalable-text" style="color:var(--text-secondary);" data-i18n="step1_desc">تجهيز الجسد والدخول في نية الإحرام.</p>
+        </div>
+
+        <div class="infographic-container"><img src="assets/ihram_attire.svg" alt="Ihram Attire Rules" /></div>
+
+        <div class="card">
+          <h3 class="card-title" data-i18n="cleanliness">النظافة والاغتسال</h3>
+          <ul class="checklist">
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_clean_nails" class="checklist-cb">
+              <label for="cb_clean_nails" class="scalable-text" data-i18n="cleanliness_detail">قص الأظافر، وحلق العانة والإبط، والاغتسال والتطيب في البدن.</label>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" data-i18n="attire_men">لباس الرجل</h3>
+          <ul class="checklist">
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_attire_men" class="checklist-cb">
+              <label for="cb_attire_men" class="scalable-text" data-i18n="attire_men_detail">رداء وإزار أبيضان نظيفان غير مخيطين، ونعل مكشوف الكعبين.</label>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" data-i18n="attire_women">لباس المرأة</h3>
+          <ul class="checklist">
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_attire_women" class="checklist-cb">
+              <label for="cb_attire_women" class="scalable-text" data-i18n="attire_women_detail">ملابس فضفاضة وساترة، وتجنب النقاب والقفازين.</label>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card gold-border">
+          <h3 class="card-title" data-i18n="miqat_dua">دعاء نية العمرة</h3>
+          <div class="duaa-panel">
+            <div class="duaa-arabic scalable-dua" data-i18n="miqat_dua_ar">«لَبَّيْكَ اللَّهُمَّ عُمْرَةً»</div>
+            <div class="duaa-transliteration scalable-text" data-i18n="miqat_dua_trans">Labbayka Allahumma 'Umrah</div>
+            <div class="duaa-translation scalable-text" data-i18n="miqat_dua_en">"Here I am, O Allah, for Umrah."</div>
+          </div>
+        </div>
+
+        <div class="card highlight">
+          <h3 class="card-title" data-i18n="niyyah_cond_title">الاشتراط في النية (إن خفت العائق)</h3>
+          <div class="duaa-panel">
+            <div class="duaa-arabic scalable-dua" data-i18n="niyyah_cond_ar">«فَإِنْ حَبَسَنِي حَابِسٌ فَمَحِلِّي حَيْثُ حَبَسْتَنِي»</div>
+            <div class="duaa-translation scalable-text" data-i18n="niyyah_cond_en">"If I am prevented by any obstacle, my place is wherever You have prevented me."</div>
+          </div>
+        </div>
+
+        <div class="card highlight">
+          <h3 class="card-title" data-i18n="talbiyah">التلبية المستمرة</h3>
+          <div class="duaa-panel">
+            <div class="duaa-arabic scalable-dua" data-i18n="talbiyah_ar">«لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ»</div>
+            <div class="duaa-transliteration scalable-text" data-i18n="talbiyah_trans">Labbayka Allahumma labbayk, labbayka la sharika laka labbayk. Innal-hamda wan-ni'mata laka wal-mulk, la sharika lak.</div>
+            <div class="duaa-translation scalable-text" data-i18n="talbiyah_en">"Here I am, O Allah, here I am. Here I am, You have no partner, here I am. Verily all praise and grace are Yours, and the dominion. You have no partner."</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- STEP 2: ENTERING MASJID AL-HARAM               -->
+      <!-- ============================================== -->
+      <div id="stepContainer2" class="step-container scrollable-step">
+        <div class="card highlight">
+          <h2 class="card-title"><span style="font-size:24px;">2</span> <span data-i18n="step2_title">دخول المسجد الحرام</span></h2>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" data-i18n="entrance_instruction">ادخل المسجد بقدمك اليمنى وقل دعاء الدخول.</h3>
+          <div class="duaa-panel">
+            <div class="duaa-arabic scalable-dua" data-i18n="entrance_dua_ar">«بِسْمِ اللهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللهِ، اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ»</div>
+            <div class="duaa-transliteration scalable-text" data-i18n="entrance_dua_trans">Bismillahi, was-salatu was-salamu 'ala rasulillah. Allahummaftah li abwaba rahmatik.</div>
+            <div class="duaa-translation scalable-text" data-i18n="entrance_dua_en">"In the name of Allah, and prayers and peace be upon the Messenger of Allah. O Allah, open for me the gates of Your mercy."</div>
+          </div>
+        </div>
+
+        <div class="card gold-border">
+          <h3 class="card-title" data-i18n="kaaba_sight_title">عند رؤية الكعبة لأول مرة</h3>
+          <div class="duaa-panel">
+            <div class="duaa-arabic scalable-dua" data-i18n="kaaba_dua_ar">«اللَّهُمَّ زِدْ هَذَا الْبَيْتَ تَشْرِيفاً وَتَعْظِيماً وَتَكْرِيماً وَمَهَابَةً»</div>
+            <div class="duaa-translation scalable-text" data-i18n="kaaba_dua_en">"O Allah, increase this House in honor, reverence, respect, and awe."</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- STEP 3: TAWAF (FULLSCREEN COUNTER)             -->
+      <!-- ============================================== -->
+      <div id="stepContainer3" class="step-container fullscreen-step" style="position: relative;">
+        <div class="giant-tap-target">
+          <div class="tap-target-content">
+            <div class="counter-round-label scalable-text" id="tawafLabel">الطواف: الشوط 1 من 7</div>
+            
+            <!-- Side-by-Side Counter Row -->
+            <div class="counter-display-row">
+              <button class="btn-side btn-undo" id="tawafUndoBtn2" aria-label="Undo">-1</button>
+              <div class="counter-center-box">
+                <div style="font-size:14px; color:var(--text-secondary); font-weight:bold;" data-i18n="current_round">الشوط الحالي</div>
+                <div class="counter-huge-number" id="tawafNumber">1</div>
+              </div>
+              <button class="btn-side btn-next-round" id="tawafNextRoundBtn" aria-label="Next Round">+1</button>
+            </div>
+            
+            <!-- Flanked Zone Stepper Row -->
+            <div class="zone-stepper-row">
+              <button class="btn-mini-side" id="tawafPrevHintBtn" aria-label="Previous Hint" title="التلميح السابق">‹</button>
+              <div class="zone-info-box">
+                <div class="zone-indicators">
+                  <div class="zone-dot" id="zDot1"></div>
+                  <div class="zone-dot" id="zDot2"></div>
+                  <div class="zone-dot" id="zDot3"></div>
+                </div>
+                <div class="zone-title" id="tawafZoneTitle">المنطقة 1: الحجر الأسود</div>
+                <div class="zone-action" id="tawafZoneAction">أشر بيدك وقل الدعاء</div>
+              </div>
+              <button class="btn-mini-side" id="tawafNextHintBtn" aria-label="Next Hint" title="التلميح التالي">›</button>
+            </div>
+
+            <div class="focus-dua" id="tawafDuaCard">
+              <div class="duaa-arabic scalable-dua" id="tawafFocusDuaAr" data-i18n="start_dua_ar">«بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ»</div>
+              <div class="duaa-translation scalable-text" id="tawafFocusDuaEn" data-i18n="start_dua_en">"Bismillahi wallahu Akbar"</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Sheet Drawer -->
+        <div class="bottom-sheet collapsed" id="tawafBottomSheet">
+          <div class="sheet-handle" id="tawafSheetHandle"></div>
+          <div class="sheet-content">
+            <h3 class="card-title" data-i18n="step3_title">الطواف حول الكعبة</h3>
+            <div class="counter-controls">
+              <button class="btn-secondary btn-danger" id="tawafResetBtn">↻ <span data-i18n="reset">Reset</span></button>
+            </div>
+            
+            <div id="dynamicTawafFocus" class="suggestion-box"></div>
+            
+            <p class="scalable-text" style="color:var(--text-secondary); margin: 15px 0;" data-i18n="tawaf_prep">تحضير الرجل: الاضطباع...</p>
+            <div class="infographic-container"><img src="assets/tawaf_map.svg" alt="Tawaf map" /></div>
+            
+            <div class="duaa-panel" style="margin-top:15px;">
+              <p style="font-size:12px; color:var(--accent-gold); font-weight:bold; margin-bottom:4px;" data-i18n="yamani_to_stone">بين الركن اليماني والحجر الأسود:</p>
+              <div class="duaa-arabic scalable-dua" data-i18n="yamani_dua_ar">«رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ»</div>
+              <div class="duaa-translation scalable-text" data-i18n="yamani_dua_en">"Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire."</div>
+            </div>
+
+            <div class="card gold-border" id="postTawafActions" style="display:none; margin-top:15px;">
+              <h3 class="card-title" data-i18n="post_tawaf_title">أعمال ما بعد الطواف</h3>
+              <ul class="checklist">
+                <li class="checklist-item"><input type="checkbox" id="cb_pt_shoulder" class="checklist-cb"><label for="cb_pt_shoulder" class="scalable-text" data-i18n="post_tawaf_1">تغطية الكتف الأيمن</label></li>
+                <li class="checklist-item"><input type="checkbox" id="cb_pt_pray" class="checklist-cb"><label for="cb_pt_pray" class="scalable-text" data-i18n="post_tawaf_2">صلاة ركعتين خلف مقام إبراهيم (سورة الكافرون والإخلاص)</label></li>
+                <li class="checklist-item"><input type="checkbox" id="cb_pt_zamzam" class="checklist-cb"><label for="cb_pt_zamzam" class="scalable-text" data-i18n="post_tawaf_3">شرب ماء زمزم والدعاء:</label></li>
+              </ul>
+              <div class="duaa-panel">
+                <div class="duaa-arabic scalable-dua" style="font-size: 20px;" data-i18n="zamzam_dua_ar">«اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا وَاسِعًا وَشِفَاءً مِنْ كُلِّ دَاءٍ»</div>
+                <div class="duaa-translation scalable-text" data-i18n="zamzam_dua_en">"O Allah, I ask You for beneficial knowledge, abundant provision, and healing from every illness."</div>
+              </div>
+              <ul class="checklist" style="margin-top: 15px;">
+                <li class="checklist-item"><input type="checkbox" id="cb_pt_multazam" class="checklist-cb"><label for="cb_pt_multazam" class="scalable-text" data-i18n="post_tawaf_4">الدعاء عند الملتزم (بين الحجر الأسود وباب الكعبة) إن تيسر</label></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- STEP 4: SA'I (FULLSCREEN COUNTER)              -->
+      <!-- ============================================== -->
+      <div id="stepContainer4" class="step-container fullscreen-step" style="position: relative;">
+        <div class="giant-tap-target">
+          <div class="tap-target-content">
+            <div class="counter-round-label scalable-text" id="saiLabel">السعي: الشوط 1 من 7</div>
+            
+            <!-- Dynamic Direction Badge -->
+            <div class="sai-direction-badge" id="saiDirectionBadge">من الصفا إلى المروة</div>
+
+            <!-- Side-by-Side Counter Row -->
+            <div class="counter-display-row">
+              <button class="btn-side btn-undo" id="saiUndoBtn2" aria-label="Undo">-1</button>
+              <div class="counter-center-box">
+                <div style="font-size:14px; color:var(--text-secondary); font-weight:bold;" data-i18n="current_round">الشوط الحالي</div>
+                <div class="counter-huge-number" id="saiNumber">1</div>
+              </div>
+              <button class="btn-side btn-next-round" id="saiNextRoundBtn" aria-label="Next Round">+1</button>
+            </div>
+
+            <div class="instruction-badge" id="saiJoggingIndicator" style="display:block;" data-i18n="sai_jogging">🟢 الهرولة بين العلمين الأخضرين (للرجال)</div>
+            
+            <div class="focus-dua" id="saiDuaCard">
+              <div class="duaa-arabic scalable-dua" id="saiFocusDuaAr">«﴿ ۞ إِنَّ الصَّفَا وَالْمَرْوَةَ مِن شَعَائِرِ اللَّهِ ۖ فَمَنْ حَجَّ الْبَيْتَ أَوِ اعْتَمَرَ فَلَا جُنَاحَ عَلَيْهِ أَن يَطَّوَّفَ بِهِمَا ۚ وَمَن تَطَوَّعَ خَيْرًا فَإِنَّ اللَّهَ شَاكِرٌ عَلِيمٌ﴾ [البقرة: 158]»</div>
+              <div class="duaa-translation scalable-text" id="saiFocusDuaEn">"Indeed, as-Safa and al-Marwah are among the symbols of Allah. So whoever makes Hajj to the House or performs 'Umrah - there is no blame upon him for walking between them. And whoever volunteers good - then indeed, Allah is appreciative and Knowing." [Al-Baqarah: 158]</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-sheet collapsed" id="saiBottomSheet">
+          <div class="sheet-handle" id="saiSheetHandle"></div>
+          <div class="sheet-content">
+            <h3 class="card-title" data-i18n="step4_title">السعي بين الصفا والمروة</h3>
+            <div class="counter-controls">
+              <button class="btn-secondary btn-danger" id="saiResetBtn">↻ <span data-i18n="reset">Reset</span></button>
+            </div>
+
+            <!-- Fiqh Note Card -->
+            <div class="suggestion-box">
+              <div class="suggestion-title">💡 حكم طهارة السعي والاستراحة</div>
+              <div class="suggestion-text scalable-text">
+                • <strong>الطهارة (الوضوء):</strong> سنة مستحبة وليست شرطاً لصحة السعي. لو انتقض وضوؤك أثناء السعي فسعيك صحيح وتستمر دون إعادة.<br>
+                • <strong>الموالاة والاستراحة:</strong> يسن السعي فور الطواف، ويجوز الفصل بينهما بركعتين، شرب ماء زمزم، أو الاستراحة إن احتجت.
+              </div>
+            </div>
+
+            <!-- Authentic Safa & Marwah Hill Dhikr Panel -->
+            <div class="duaa-panel" id="saiHillDuaBox" style="margin-top:15px;">
+              <p style="font-size:13px; color:var(--accent-gold); font-weight:bold; margin-bottom:6px;">🕋 سنن ودعاء الوقوف على الصفا والمروة:</p>
+              <div class="suggestion-text scalable-text" style="margin-bottom:8px;">
+                عند الوصول للصفا (في الشوط الأول فقط) تقرأ: <em>«﴿ ۞ إِنَّ الصَّفَا وَالْمَرْوَةَ مِن شَعَائِرِ اللَّهِ ۖ فَمَنْ حَجَّ الْبَيْتَ أَوِ اعْتَمَرَ فَلَا جُنَاحَ عَلَيْهِ أَن يَطَّوَّفَ بِهِمَا ۚ وَمَن تَطَوَّعَ خَيْرًا فَإِنَّ اللَّهَ شَاكِرٌ عَلِيمٌ﴾ [البقرة: 158] .. أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ»</em>.<br>
+                ثم تصعد الجبل وتستقبل الكعبة وترفع يديك للدعاء وتقول:
+              </div>
+              <div class="duaa-arabic scalable-dua" style="font-size:18px;">«اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ<br>لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، يُحْيِي وَيُمِيتُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزَابَ وَحْدَهُ»</div>
+              <div class="suggestion-text scalable-text" style="margin-top:8px; font-size:12px; opacity:0.9;">
+                (تكرر هذا الذكر 3 مرات وتدعو بما تشاء من خير الدنيا والآخرة بين كل مرة وأخرى).
+              </div>
+            </div>
+
+            <!-- Green Lights Jogging Card -->
+            <div class="card highlight" style="margin-top:15px;">
+              <h4 class="card-title" style="font-size:15px;">🟢 الهرولة بين العلمين الأخضرين (للرجال)</h4>
+              <p class="scalable-text" style="font-size:13px; margin-bottom:8px;">
+                يسن للرجال الإسراع في المشي (الهرولة) بين الشاخصين الأخضرين، ويقول أثناءها:
+              </p>
+              <div class="duaa-arabic scalable-dua" style="font-size:17px;">«رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمُ، إِنَّكَ أَنْتَ الأَعَزُّ الأَكْرَمُ»</div>
+            </div>
+            
+            <div class="infographic-container" style="margin: 15px 0;"><img src="assets/sai_flow.svg" alt="Sa'i flow map" /></div>
+            
+            <!-- 7 Legs Summary Card -->
+            <div class="card" style="margin-top:15px;">
+              <h4 class="card-title" style="font-size:15px;">📍 مسار الأشواط السبعة ومستحبات نهاية السعي</h4>
+              <ul class="checklist">
+                <li class="checklist-item"><label class="scalable-text"><strong>الشوط 1:</strong> من الصفا إلى المروة (يبدأ بالقرآن والذكر)</label></li>
+                <li class="checklist-item"><label class="scalable-text"><strong>الشوط 2:</strong> من المروة إلى الصفا</label></li>
+                <li class="checklist-item"><label class="scalable-text"><strong>الشوط 3:</strong> من الصفا إلى المروة</label></li>
+                <li class="checklist-item"><label class="scalable-text"><strong>الشوط 4:</strong> من المروة إلى الصفا</label></li>
+                <li class="checklist-item"><label class="scalable-text"><strong>الشوط 5:</strong> من الصفا إلى المروة</label></li>
+                <li class="checklist-item"><label class="scalable-text"><strong>الشوط 6:</strong> من المروة إلى الصفا</label></li>
+                <li class="checklist-item"><label class="scalable-text"><strong>الشوط 7:</strong> من الصفا إلى المروة (ينتهي عند المروة وتتجه للتحلل)</label></li>
+              </ul>
+              <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                <p style="font-size:13px; color:var(--accent-gold); font-weight:bold; margin-bottom:4px;">🚪 دعاء الخروج من المسجد الحرام (بالقدم اليسرى):</p>
+                <div class="duaa-arabic scalable-dua" style="font-size:16px;">«بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ»</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- STEP 5: HALQ OR TAQSEER                        -->
+      <!-- ============================================== -->
+      <div id="stepContainer5" class="step-container scrollable-step">
+        <div class="card highlight">
+          <h2 class="card-title"><span style="font-size:24px;">5</span> <span data-i18n="step5_title">التحلل من الإحرام (الحلق أو التقصير)</span></h2>
+        </div>
+        
+        <!-- Hadith Card -->
+        <div class="card gold-border">
+          <h3 class="card-title" style="color:var(--accent-gold);">📜 فضل الحلق في السنة النبوية</h3>
+          <div class="duaa-arabic scalable-dua" style="font-size:17px; margin-bottom:6px;">«اللَّهُمَّ اغْفِرْ لِلْمُحَلِّقِينَ»</div>
+          <div class="suggestion-text scalable-text">
+            قَالُوا: وَلِلْمُقَصِّرِينَ يَا رَسُولَ اللَّهِ؟ قَالَ: «اللَّهُمَّ اغْفِرْ لِلْمُحَلِّقِينَ»، قَالُوا: وَلِلْمُقَصِّرِينَ يَا رَسُولَ اللَّهِ؟ قَالَ: «وَلِلْمُقَصِّرِينَ» (دعا النبي ﷺ للمحلقين بالمغفرة ثلاث مرات وللمقصرين مرة).
+          </div>
+        </div>
+
+        <div class="infographic-container"><img src="assets/haircut_rules.svg" alt="Haircut Rules" /></div>
+        
+        <!-- Detailed Men Card -->
+        <div class="card">
+          <h3 class="card-title" data-i18n="shave_men">✂️ أحكام الحلق والتقصير للرجال</h3>
+          <ul class="checklist">
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_shave_men" class="checklist-cb">
+              <label for="cb_shave_men" class="scalable-text">
+                <strong>الحلق (الأفضل):</strong> إزالة شعر الرأس كاملاً بالموسى أو ماكينة الحلاقة على الصفر (وفيه الفضل الأكبر).
+              </label>
+            </li>
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_trim_men_all" class="checklist-cb">
+              <label for="cb_trim_men_all" class="scalable-text">
+                <strong>التقصير الشرعي الصحيح:</strong> قص الشعر من <u>جميع جوانب الرأس</u> وليس من جهة واحدة فقط.
+              </label>
+            </li>
+            <li class="checklist-item" style="background:rgba(225,29,72,0.15); border:1px solid rgba(225,29,72,0.4); padding:10px; border-radius:8px;">
+              <input type="checkbox" id="cb_shave_warn" class="checklist-cb" style="width:24px; height:24px;">
+              <label for="cb_shave_warn" class="scalable-text" style="color:#fecdd3; font-weight:bold;">
+                ⚠️ تنبيه مهم ومحظور: قص بضع شعيرات قليلة من المقدمة فقط لا يجزئ عند الجمهور! يجب تعميم جميع نواحي الرأس بالتقصير.
+              </label>
+            </li>
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_shave_ihram" class="checklist-cb">
+              <label for="cb_shave_ihram" class="scalable-text" style="color:var(--accent-gold); font-weight:bold;">
+                يجب أن يتم الحلق أو التقصير وأنت بملابس الإحرام وقبل خلعها أو وضع الطيب.
+              </label>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Detailed Women Card -->
+        <div class="card">
+          <h3 class="card-title" data-i18n="trim_women">✂️ أحكام تقصير الشعر للنساء</h3>
+          <ul class="checklist">
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_trim_women_rule" class="checklist-cb">
+              <label for="cb_trim_women_rule" class="scalable-text">
+                <strong>التقصير فقط:</strong> ينهى النساء عن حلق الرأس، والواجب عليهن التقصير فقط.
+              </label>
+            </li>
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_trim_women" class="checklist-cb">
+              <label for="cb_trim_women" class="scalable-text" data-i18n="trim_women_detail">
+                <strong>مقدار التقصير:</strong> تجمع المرأة أطراف شعرها وستقص قدر (أنملة = 1-2 سم تقريباً) من أطراف جميع الشعر.
+              </label>
+            </li>
+            <li class="checklist-item">
+              <input type="checkbox" id="cb_trim_women_privacy" class="checklist-cb">
+              <label for="cb_trim_women_privacy" class="scalable-text">
+                <strong>الستر والخصوصية:</strong> تقص المرأة شعرها في سكنها أو مكان مستور بعيداً عن أنظار الرجال الأجانب.
+              </label>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Completion Card -->
+        <div class="card gold-border finish-panel" style="margin-top:20px; background:linear-gradient(135deg, rgba(6,78,59,0.8) 0%, rgba(4,120,87,0.9) 100%);">
+          <div class="finish-icon">🕋</div>
+          <h3 class="card-title" style="border:none; color:var(--accent-gold); font-size:24px;" data-i18n="congrats_title">عمرة مقبولة وتامة!</h3>
+          <p class="scalable-text" style="font-size:14px; margin-top:8px; line-height:1.6;">
+            بعد الحلق أو التقصير يتحلل المحرم <strong>تحللاً كاملاً</strong>، وتحل له جميع محظورات الإحرام (خلع ملابس الإحرام، الطيب، قص الأظافر، ولبس الثياب المخيطة). تقبل الله طاعتكم!
+          </p>
+          <div style="margin-top:12px; font-size:12px; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; text-align:right;">
+            📍 <strong>أماكن صالونات الحلاقة:</strong> تتوفر صالونات معتمدة خارج باب المروة، وأبراج زمزم، والصفوة، ومجمع هيلتون.<br>
+            🕌 <strong>العمرة الثانية:</strong> من رغب بطلب عمرة أخرى، يتجه خارج أدنى الحل إلى <strong>مسجد عائشة رضي الله عنها بالتنعيم</strong> للإحرام مجدداً.
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- CUSTOM PERSONAL REMINDERS (BOTTOM OF SCROLL)   -->
+      <!-- ============================================== -->
+      <section class="card reminders-section" id="remindersSectionWrapper">
+        <h3 class="card-title" data-i18n="reminders_title">التذكيرات الشخصية</h3>
+        
+        <div class="reminder-form">
+          <!-- New Dropdown for Assignment -->
+          <label style="font-size: 13px; color: var(--accent-gold); font-weight: bold;" data-i18n="assign_reminder_to">Assign to specific step/round:</label>
+          <select id="reminderTargetSelect" class="reminder-select">
+            <option value="step1" data-i18n="step1">Step 1</option>
+            <option value="step2" data-i18n="step2">Step 2</option>
+            <!-- Tawaf Rounds -->
+            <option value="step3_round_1" data-i18n="s3_r1">Tawaf - Round 1</option>
+            <option value="step3_round_2" data-i18n="s3_r2">Tawaf - Round 2</option>
+            <option value="step3_round_3" data-i18n="s3_r3">Tawaf - Round 3</option>
+            <option value="step3_round_4" data-i18n="s3_r4">Tawaf - Round 4</option>
+            <option value="step3_round_5" data-i18n="s3_r5">Tawaf - Round 5</option>
+            <option value="step3_round_6" data-i18n="s3_r6">Tawaf - Round 6</option>
+            <option value="step3_round_7" data-i18n="s3_r7">Tawaf - Round 7</option>
+            <!-- Sa'i Legs -->
+            <option value="step4_leg_1" data-i18n="s4_l1">Sa'i - Leg 1</option>
+            <option value="step4_leg_2" data-i18n="s4_l2">Sa'i - Leg 2</option>
+            <option value="step4_leg_3" data-i18n="s4_l3">Sa'i - Leg 3</option>
+            <option value="step4_leg_4" data-i18n="s4_l4">Sa'i - Leg 4</option>
+            <option value="step4_leg_5" data-i18n="s4_l5">Sa'i - Leg 5</option>
+            <option value="step4_leg_6" data-i18n="s4_l6">Sa'i - Leg 6</option>
+            <option value="step4_leg_7" data-i18n="s4_l7">Sa'i - Leg 7</option>
+            <option value="step5" data-i18n="step5">Step 5</option>
+          </select>
+
+          <div class="reminder-input-wrapper" style="margin-top:10px;">
+            <input type="text" id="reminderInput" class="reminder-text-input" data-i18n-placeholder="reminder_placeholder" placeholder="Type note...">
+            <button id="addReminderBtn" class="btn-secondary" style="height:auto; padding:0 14px;" data-i18n="add_reminder">Add Note</button>
+          </div>
+        </div>
+
+        <div class="recorder-panel" style="margin-top:12px;">
+          <div><div id="recordingStatus" class="recording-status"></div></div>
+          <button id="voiceRecordBtn" class="recorder-btn" title="Record voice reminder">🎤</button>
+        </div>
+
+        <div style="margin-top:16px;">
+          <h4 style="font-size:14px; color:var(--accent-gold); margin-bottom:6px;" data-i18n="text_notes">Saved Text Notes:</h4>
+          <ul id="textRemindersList" class="recorded-list"></ul>
+        </div>
+        <div style="margin-top:16px;">
+          <h4 style="font-size:14px; color:var(--accent-gold); margin-bottom:6px;" data-i18n="voice_notes">Saved Voice Notes:</h4>
+          <ul id="voiceRemindersList" class="recorded-list"></ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- Fixed Bottom Controls Frame -->
+    <footer class="bottom-nav">
+      <button class="btn-secondary" id="prevBtn" data-i18n="prev">السابق</button>
+      <button class="btn-primary" id="nextBtn" data-i18n="next">التالي</button>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

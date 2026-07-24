@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="emerald-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+  </defs>
+  <!-- Full square background for maskable compatibility -->
+  <rect width="512" height="512" fill="url(#emerald-grad)" />
+  <!-- Kaaba Icon -->
+  <g transform="translate(128, 120)">
+    <!-- Base / Walls -->
+    <path d="M 40,180 L 128,220 L 216,180 L 216,70 L 128,110 L 40,70 Z" fill="#111827" stroke="url(#gold-grad)" stroke-width="4" />
+    <!-- Left wall details -->
+    <path d="M 40,70 L 128,110 L 128,220 L 40,180 Z" fill="#1f2937" opacity="0.9" />
+    <!-- Right wall details -->
+    <path d="M 128,110 L 216,70 L 216,180 L 128,220 Z" fill="#111827" />
+    <!-- Kiswah Gold Band (Hizam) -->
+    <path d="M 40,95 L 128,135 L 216,95" fill="none" stroke="url(#gold-grad)" stroke-width="12" />
+    <!-- Kaaba Door (Bab al-Kaaba) -->
+    <path d="M 155,130 L 180,120 L 180,185 L 155,195 Z" fill="url(#gold-grad)" />
+    <!-- Flow / Path lines (UmrahFlow) -->
+    <path d="M -20,130 Q 128,290 276,130" fill="none" stroke="#34d399" stroke-width="10" stroke-linecap="round" stroke-dasharray="16,8" />
+  </g>
+</svg>

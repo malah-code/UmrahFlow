@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#022c22" rx="16" />
+  
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399" />
+    </marker>
+  </defs>
+
+  <!-- Circulating Path Circles -->
+  <circle cx="200" cy="140" r="100" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.4" />
+  <circle cx="200" cy="140" r="85" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="12,6" />
+  <circle cx="200" cy="140" r="70" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.4" />
+
+  <!-- Direction Arrows on Path -->
+  <path d="M 285,140 A 85,85 0 0,0 200,55" fill="none" stroke="#34d399" stroke-width="4" marker-end="url(#arrow)" />
+  <path d="M 200,225 A 85,85 0 0,0 285,140" fill="none" stroke="#34d399" stroke-width="4" />
+  <path d="M 115,140 A 85,85 0 0,0 200,225" fill="none" stroke="#34d399" stroke-width="4" />
+  <path d="M 200,55 A 85,85 0 0,0 115,140" fill="none" stroke="#34d399" stroke-width="4" />
+
+  <!-- Starting / Alignment Line (Black Stone Line) -->
+  <line x1="200" y1="140" x2="310" y2="250" stroke="#10b981" stroke-width="4" stroke-linecap="round" />
+  <text x="290" y="265" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" fill="#34d399" text-anchor="middle">Start Line / خط البداية</text>
+
+  <!-- Kaaba (Top View) -->
+  <rect x="160" y="100" width="80" height="80" fill="#111827" stroke="#fbbf24" stroke-width="3" rx="4" />
+  <!-- Kiswah Gold Band -->
+  <rect x="163" y="103" width="74" height="74" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="2,2" opacity="0.8" />
+  <!-- Golden Door (on the Eastern side) -->
+  <rect x="238" y="115" width="2" height="20" fill="#fbbf24" />
+
+  <!-- Black Stone Corner (Bottom-Right, Southeast) -->
+  <circle cx="240" cy="180" r="7" fill="#fbbf24" stroke="#111827" stroke-width="2" />
+  <circle cx="240" cy="180" r="3" fill="#000000" />
+  <text x="285" y="195" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" fill="#ffffff">Black Stone</text>
+  <text x="285" y="210" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">الحجر الأسود</text>
+
+  <!-- Yemeni Corner (Bottom-Left, Southwest) -->
+  <circle cx="160" cy="180" r="5" fill="#f59e0b" />
+  <text x="90" y="195" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="end">Yemeni Corner</text>
+  <text x="90" y="210" font-family="system-ui, sans-serif" font-size="10" fill="#f59e0b" text-anchor="end">الركن اليماني</text>
+
+  <!-- Highlight Yemeni to Black Stone Zone -->
+  <path d="M 140,200 A 85,85 0 0,0 260,200" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-dasharray="6,4" />
+  <text x="200" y="255" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" fill="#fbbf24" text-anchor="middle">Recite Special Du'aa here</text>
+</svg>
